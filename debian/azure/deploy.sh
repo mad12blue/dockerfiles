@@ -21,7 +21,11 @@ REPO=${REPO:-https://github.com/mad12blue/dockerfiles.git}
 BRANCH=${BRANCH:-debian}
 DEFAULT_TAG=${DEFAULT_TAG:-5.13.43}
 DOCKER_VERSION=${DOCKER_VERSION:-29.8.2}
+SUBSCRIPTION=${SUBSCRIPTION:-innvoice-sub}
 
+# Always work in this subscription (also makes it the CLI default for the README commands)
+az account set --subscription "$SUBSCRIPTION" \
+  || { echo "ERROR: subscription $SUBSCRIPTION not found - run az login" >&2; exit 1; }
 SUB_ID=$(az account show --query id -o tsv)
 TENANT_ID=$(az account show --query tenantId -o tsv)
 SUFFIX=${SUB_ID:0:6}

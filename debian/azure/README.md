@@ -68,7 +68,7 @@ Invoice Ninja's own files (`docker-compose.yml`, `.env`, `Dockerfile` …) are *
 
 ### 1. What you need
 
-- An Azure subscription where you are **Owner**.
+- The Azure subscription **`innvoice-sub`**, where you are **Owner**. `deploy.sh` always deploys there, whatever your CLI's default is.
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) and **Git Bash** (comes with Git for Windows).
 - A GitHub account with **two-factor authentication turned on**. The VM runs the code from your fork, so protect that account.
 
@@ -91,7 +91,8 @@ Invoice Ninja's own files (`docker-compose.yml`, `.env`, `Dockerfile` …) are *
 ### 3. Deploy
 
 ```bash
-az login
+az login                                  # if Git Bash seems stuck after choosing the account, press Enter
+az account set --subscription innvoice-sub
 cd debian/azure
 ./deploy.sh
 ```
@@ -363,7 +364,7 @@ All commands run in Git Bash from `debian/azure`, after `az login`.
 | `./deploy.sh ops restore <name>` | Restore a backup |
 
 Optional settings for `deploy.sh` (put them before the command, e.g. `VM_SIZE=Standard_B2ms ./deploy.sh`):
-`LOCATION`, `VM_SIZE`, `DNS_LABEL`, `ADMIN_EMAIL`, `REPO`, `BRANCH`, `DEFAULT_TAG`, `DOCKER_VERSION`.
+`SUBSCRIPTION` (default `innvoice-sub`), `LOCATION`, `VM_SIZE`, `DNS_LABEL`, `ADMIN_EMAIL`, `REPO`, `BRANCH`, `DEFAULT_TAG`, `DOCKER_VERSION`.
 `VM_SIZE` and `DOCKER_VERSION` only apply when a VM is created (first deploy or `rebuild-vm`).
 
 ---
