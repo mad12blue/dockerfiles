@@ -1,0 +1,47 @@
+# Azure VM override, used by azure/ops.sh (see azure/README.md).
+# Keeps Invoice Ninja's docker-compose.yml untouched so "Sync fork" never conflicts.
+#
+# Every image is pinned, so a restart never changes a version. The defaults below can be
+# overridden in Key Vault (e.g. secret MYSQL-TAG); Invoice Ninja itself uses secret TAG.
+services:
+  app:
+    # Generated from Key Vault by ops.sh on every start
+    env_file: !override
+      - /etc/innvoice/app.env
+
+  nginx:
+    image: nginx:${NGINX_TAG:-1.30.5-alpine}
+    # Only reachable through Caddy
+    ports: !reset []
+
+  mysql:
+    image: mysql:${MYSQL_TAG:-8.4.11}
+
+  redis:
+    image: redis:${REDIS_TAG:-8.10.2-alpine}
+
+  caddy:
+    image: caddy:${CADDY_TAG:-2.11.4-alpine}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESSES: ${SITE_ADDRESSES:?}
+    volumes:
+      - ./azure/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - nginx
+
+# Persistent data lives on the separate data disk mounted at /data.
+# ops.sh refuses to start if the database or uploads would end up anywhere else.
+volumes:
+  app_storage:
+    driver_opts: { type: none, o: bind, device: /data/storage }
+  mysql_data:
+    driver_opts: { type: none, o: bind, device: /data/mysql }
+  caddy_data:
+    driver: local
+    driver_opts: { type: none, o: bind, device: /data/caddy }

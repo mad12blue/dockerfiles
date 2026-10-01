@@ -1,0 +1,6 @@
+# HTTPS with automatic Let's Encrypt certificates, forwarded to nginx.
+# SITE_ADDRESSES is set by ops.sh, e.g. "innvoice.germanywestcentral.cloudapp.azure.com, app.innvoice.de"
+{$SITE_ADDRESSES} {
+	encode zstd gzip
+	reverse_proxy nginx:80
+}
