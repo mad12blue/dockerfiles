@@ -9,6 +9,7 @@
 #   ./deploy.sh status               show URL, version and container status
 set -euo pipefail
 export MSYS_NO_PATHCONV=1   # stop Git Bash rewriting /subscriptions/... into Windows paths
+export PYTHONIOENCODING=utf-8   # let az print the VM's output without dropping characters
 
 LOCATION=${LOCATION:-germanywestcentral}
 RG_APP=${RG_APP:-rg-innvoice-app}
@@ -60,14 +61,27 @@ assign() {
   az role assignment create --assignee-object-id "$1" --assignee-principal-type "$2" --role "$3" --scope "$4" -o none
 }
 
-# Run commands on the VM as root and fail if they fail (Azure does not pass the exit code back)
+# Run commands on the VM as root, show their output and fail if they fail.
+# Uses a managed run command: `az vm run-command invoke` drops the script in some CLI versions.
 vm_run() {
-  local out
-  out=$(az vm run-command invoke -g "$RG_APP" -n "$VM" --command-id RunShellScript \
-    --scripts "set -e" "$1" "echo __OK__" --query 'value[0].message' -o tsv)
-  sed -e '/^Enable succeeded: *$/d' -e '/^__OK__$/d' -e '/^\[std\(out\|err\)\] *$/d' <<< "$out"
-  grep -q '^__OK__$' <<< "$out" && return
-  echo "ERROR: the command failed on the VM (see the output above)" >&2
+  local file path name code
+  file=$(mktemp)
+  printf 'set -e\n%s\n' "$1" > "$file"
+  path=$file
+  command -v cygpath > /dev/null && path=$(cygpath -w "$file")   # az on Windows needs a Windows path
+  name=run-$(date +%s)
+  az vm run-command create -g "$RG_APP" --vm-name "$VM" --name "$name" --script @"$path" \
+    --async-execution false --timeout-in-seconds 5400 -o none 2>/dev/null || true   # result checked below
+  rm -f "$file"
+  az vm run-command show -g "$RG_APP" --vm-name "$VM" --name "$name" --instance-view \
+    --query instanceView.output -o tsv
+  az vm run-command show -g "$RG_APP" --vm-name "$VM" --name "$name" --instance-view \
+    --query instanceView.error -o tsv | grep . >&2 || true
+  code=$(az vm run-command show -g "$RG_APP" --vm-name "$VM" --name "$name" --instance-view \
+    --query instanceView.exitCode -o tsv)
+  az vm run-command delete -g "$RG_APP" --vm-name "$VM" --name "$name" --yes -o none || true
+  [ "$code" = 0 ] && return
+  echo "ERROR: the command failed on the VM (exit code ${code:-unknown}, see the output above)" >&2
   return 1
 }
 
