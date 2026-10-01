@@ -110,6 +110,13 @@ runcmd:
     mount -a'
 
 deploy() {
+  step "Azure services (registered once per subscription)"
+  for ns in Microsoft.KeyVault Microsoft.Storage Microsoft.Network Microsoft.Compute Microsoft.Insights Microsoft.Communication; do
+    [ "$(az provider show -n "$ns" --query registrationState -o tsv)" = Registered ] && continue
+    echo "    registering $ns (1-5 minutes)"
+    az provider register -n "$ns" --wait -o none
+  done
+
   step "Resource groups"
   az group create -n "$RG_APP" -l "$LOCATION" -o none
   az group create -n "$RG_DATA" -l "$LOCATION" -o none
