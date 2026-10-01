@@ -183,7 +183,7 @@ deploy() {
       --os-disk-size-gb 30 --storage-sku StandardSSD_LRS --os-disk-delete-option Delete \
       --attach-data-disks "$(az disk show -n "$DISK" -g "$RG_DATA" --query id -o tsv)" --data-disk-delete-option Detach \
       --public-ip-address "$(az network public-ip show -n "$IP" -g "$RG_DATA" --query id -o tsv)" \
-      --public-ip-address-delete-option Detach --nic-delete-option Delete --nsg "$NSG" \
+      --nic-delete-option Delete --nsg "$NSG" \
       --assign-identity '[system]' --tags kv="$KV" st="$ST" \
       --custom-data "${CLOUD_INIT//__DOCKER_VERSION__/$DOCKER_VERSION}" -o none
   fi
