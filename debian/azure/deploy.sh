@@ -233,7 +233,23 @@ Login:     $(kv_get IN-USER-EMAIL)
 Password:  az keyvault secret show --vault-name $KV -n IN-PASSWORD --query value -o tsv
            (only used for the very first login - change it in the app afterwards)
 EOF
+  mail_expiry
   vm_run "docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'"
+}
+
+# The email login (Entra app secret) expires; Microsoft sends no reminder, so warn here
+mail_expiry() {
+  local app_id end days
+  app_id=$(az ad app list --display-name "$SMTP_APP" --query '[0].appId' -o tsv 2>/dev/null)
+  [ -n "$app_id" ] || return 0
+  end=$(az ad app credential list --id "$app_id" --query 'max([].endDateTime)' -o tsv 2>/dev/null)
+  [ -n "$end" ] || return 0
+  days=$(( ($(date -d "$end" +%s) - $(date +%s)) / 86400 ))
+  if [ "$days" -lt 60 ]; then
+    printf '\nWARNING: the email login expires on %s (%s days left) - emails stop after that.\n         Renew now: ./deploy.sh rotate-mail-secret\n\n' "${end:0:10}" "$days" >&2
+  else
+    echo "Email:     $(kv_get MAIL-FROM-ADDRESS), login valid until ${end:0:10} ($days days left)"
+  fi
 }
 
 setup_mail() {
@@ -347,7 +363,8 @@ case ${1:-deploy} in
     [ -n "$app_id" ] || die "email is not set up yet"
     new_mail_secret "$app_id"
     vm_run "$REMOTE_OPS start"
-    echo "New SMTP secret stored in Key Vault and app restarted. Next renewal: in 2 years."
+    echo "New SMTP secret stored in Key Vault and app restarted."
+    mail_expiry
     ;;
   *) sed -n '2,10p' "$0"; exit 1 ;;
 esac

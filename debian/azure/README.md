@@ -228,7 +228,11 @@ Until email is turned on, Invoice Ninja **cannot send** invoices or password res
 3. Wait ~15 minutes (sometimes up to a few hours), then run `./deploy.sh` again. Repeat until it says **Email enabled**.
 4. Send a test invoice to yourself.
 
-**The email password expires after 2 years.** Put a reminder in your calendar, then run:
+**The email login expires after 2 years, and Microsoft sends no reminder.** If it expires, emails stop.
+- `./deploy.sh status` (and every `./deploy.sh` run) shows the expiry date, e.g.
+  `Email: rechnung@innvoice.de, login valid until 2028-10-05 (730 days left)`,
+  and prints a **WARNING** when fewer than 60 days are left.
+- Also put a reminder in your calendar a month before. To renew (takes 1 minute, the app restarts once):
 ```bash
 ./deploy.sh rotate-mail-secret
 ```
