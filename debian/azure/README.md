@@ -24,7 +24,7 @@ Runs Invoice Ninja on one Azure VM, with HTTPS, automatic backups and all settin
                  Internet (HTTPS)
                         │
 ┌─ rg-innvoice-app ─────▼─────────────────────────────┐   disposable: can be deleted
-│  VM  vm-innvoice  (Ubuntu 24.04, B2als_v2)          │   and rebuilt at any time
+│  VM  vm-innvoice  (Ubuntu 24.04, B2ls_v2)           │   and rebuilt at any time
 │   Caddy (HTTPS) → nginx → Invoice Ninja → MySQL     │
 │                                          → Redis    │
 └──────────────────────┬──────────────────────────────┘
@@ -56,11 +56,11 @@ Invoice Ninja's own files (`docker-compose.yml`, `.env`, `Dockerfile` …) are *
 
 | Item | €/month |
 |---|---|
-| VM B2als_v2 (2 vCPU, 4 GB) | ~28 |
+| VM B2ls_v2 (2 vCPU, 4 GB) | ~31 |
 | OS disk + data disk | ~10 |
 | Static IP | ~4 |
 | Storage, Key Vault, alert, email | ~2 |
-| **Total** | **~45** |
+| **Total** | **~48** |
 
 ---
 
@@ -380,7 +380,7 @@ Optional settings for `deploy.sh` (put them before the command, e.g. `VM_SIZE=St
 | One VM | During updates, restarts and Sunday patching the app is briefly offline (usually 1–3 minutes). |
 | One region | If Germany West Central is down, the app is down. The backups also have a copy in another region, but moving there is manual. |
 | Up to 6 hours of loss | If the data disk itself is damaged, you return to the last backup. |
-| Performance | B2als_v2 suits a small team. If the app feels slow or PDF generation fails, use a bigger VM: `az vm resize -g rg-innvoice-app -n vm-innvoice --size Standard_B2as_v2` (8 GB, ~€55/month). |
+| Performance | B2ls_v2 suits a small team. If the app feels slow or PDF generation fails, use a bigger VM: `az vm resize -g rg-innvoice-app -n vm-innvoice --size Standard_B2s_v2` (8 GB, ~€62/month, same quota family Bsv2). |
 | Data disk size | 32 GB. To grow it: stop the VM, resize the disk in the portal, start the VM, then run `sudo resize2fs $(findfs LABEL=innvoice-data)` on the VM. |
 | Key Vault deletion | Deleted vaults are kept for 90 days and the name stays blocked. That's a safety feature. |
 | Docker Hub | Images are downloaded from Docker Hub. If it is unreachable, restarts use the copies already on the VM. |
