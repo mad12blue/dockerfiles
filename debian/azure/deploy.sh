@@ -178,7 +178,7 @@ deploy() {
   exists az network public-ip show -n "$IP" -g "$RG_DATA" || az network public-ip create -n "$IP" -g "$RG_DATA" \
     -l "$LOCATION" --sku Standard --allocation-method Static --dns-name "$DNS_LABEL" -o none
   exists az disk show -n "$DISK" -g "$RG_DATA" || az disk create -n "$DISK" -g "$RG_DATA" -l "$LOCATION" \
-    --size-gb 32 --sku Premium_LRS -o none
+    --size-gb 32 --sku StandardSSD_LRS -o none
   exists az lock show -n keep-data -g "$RG_DATA" || az lock create -n keep-data -g "$RG_DATA" \
     --lock-type CanNotDelete --notes "Holds Invoice Ninja data and backups" -o none
 

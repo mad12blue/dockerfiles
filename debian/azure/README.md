@@ -57,10 +57,10 @@ Invoice Ninja's own files (`docker-compose.yml`, `.env`, `Dockerfile` …) are *
 | Item | €/month |
 |---|---|
 | VM B2ls_v2 (2 vCPU, 4 GB) | ~31 |
-| OS disk + data disk | ~10 |
+| OS disk + data disk (both Standard SSD) | ~6 |
 | Static IP | ~4 |
 | Storage, Key Vault, alert, email | ~2 |
-| **Total** | **~48** |
+| **Total** | **~45** |
 
 ---
 
